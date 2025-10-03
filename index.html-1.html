@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baht ↔ Kyat Exchange App</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    
+    <style>
+        /* ===================================== */
+        /* CSS STYLES HERE             */
+        /* ===================================== */
+        
+        /* โค้ดพื้นฐาน */
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            background-color: #f4f7f6;
+            color: #333;
+            /* สำหรับการสาธิต: จัดให้อยู่ตรงกลางหน้าจอ */
+            display: flex; 
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 0 20px;
+            flex-grow: 1;
+        }
+        h2 {
+            text-align: center;
+            color: #37a34e;
+            margin-bottom: 25px;
+        }
+        
+        /* Navbar */
+        .navbar {
+            background-color: #37a34e; /* สีเขียว Bit Dumbo */
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .user-info {
+            font-size: 16px;
+        }
+        .fa-user-circle {
+            font-size: 24px;
+            margin-left: 10px;
+        }
+        
+        /* อัตราแลกเปลี่ยน */
+        .rate-display {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .rates {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        .rate-card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            width: 45%;
+        }
+        .rate-card i {
+            font-size: 30px;
+            color: #37a34e;
+            margin-bottom: 10px;
+        }
+        .rate-value {
+            font-size: 22px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        /* เครื่องมือแลกเปลี่ยน */
+        .exchange-tool {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+            margin-bottom: 30px;
+        }
+        .calculator-panel {
+            display: flex;
+            flex-wrap: wrap; /* เพื่อให้ลงบรรทัดใหม่ในจอเล็ก */
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .input-group {
+            flex: 1 1 40%; /* ยืดหยุ่นได้ */
+            margin: 10px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        .swap-icon {
+            font-size: 30px;
+            color: #37a34e;
+            cursor: pointer;
+            margin: 20px 10px;
+            transition: transform 0.3s;
+        }
+        .swap-icon:hover {
+            transform: rotate(360deg);
+        }
+        #exchange-btn {
+            background-color: #37a34e;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+            flex-basis: 100%; /* ให้ปุ่มอยู่เต็มบรรทัด */
+            margin-top: 20px;
+        }
+        #exchange-btn:hover {
+            background-color: #2c8c43;
+        }
+        #fee-display {
+            text-align: center;
+            font-size: 14px;
+            color: #777;
+            margin-top: 10px;
+            flex-basis: 100%;
+        }
+        
+        /* สไตล์สำหรับจอเล็ก */
+        @media (max-width: 768px) {
+            .rates {
+                flex-direction: column;
+                gap: 15px;
+            }
+            .rate-card {
+                width: 100%;
+            }
+            .calculator-panel {
+                flex-direction: column;
+            }
+            .input-group {
+                flex-basis: 100%;
+                margin: 10px 0;
+            }
+            .swap-icon {
+                transform: rotate(90deg); /* หมุนไอคอนสลับในแนวตั้ง */
+            }
+            .swap-icon:hover {
+                transform: rotate(450deg);
+            }
+        }
+        
+    </style>
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="logo">Exchange Pro</div>
+        <div class="user-info">
+            <span id="user-balance">ยอดคงเหลือ: ฿ 0.00 | K 0.00</span>
+            <i class="fas fa-user-circle"></i>
+        </div>
+    </header>
+
+    <main class="container">
+        
+        <section class="rate-display">
+            <h2>อัตราแลกเปลี่ยนวันนี้</h2>
+            <div class="rates">
+                <div class="rate-card sell-rate">
+                    <i class="fas fa-hand-holding-usd"></i>
+                    <h3>ขายจ๊าต (KYAT → BAHT)</h3>
+                    <p class="rate-value" id="sell-rate-ky">1 THB = <span class="rate-kyat">50.00</span> MMK</p>
+                </div>
+                <div class="rate-card buy-rate">
+                    <i class="fas fa-exchange-alt"></i>
+                    <h3>ซื้อจ๊าต (BAHT → KYAT)</h3>
+                    <p class="rate-value" id="buy-rate-ky">1 THB = <span class="rate-kyat">55.00</span> MMK</p>
+                </div>
+            </div>
+        </section>
+        
+        <section class="exchange-tool">
+            <h2>แลกเปลี่ยนเงินตรา</h2>
+            <div class="calculator-panel">
+                <div class="input-group">
+                    <label for="amount-from">จำนวนเงินต้น</label>
+                    <input type="number" id="amount-from" value="1000" oninput="calculateExchange()">
+                    <select id="currency-from" onchange="calculateExchange()">
+                        <option value="THB">บาท (THB)</option>
+                        <option value="KYAT">จ๊าต (MMK)</option>
+                    </select>
+                </div>
+
+                <i class="fas fa-arrows-alt-h swap-icon" onclick="swapCurrencies()"></i>
+                
+                <div class="input-group">
+                    <label for="amount-to">จำนวนเงินปลายทางโดยประมาณ</label>
+                    <input type="text" id="amount-to" readonly>
+                    <select id="currency-to" disabled>
+                        <option value="KYAT">จ๊าต (MMK)</option>
+                        <option value="THB">บาท (THB)</option>
+                    </select>
+                </div>
+
+                <button id="exchange-btn" onclick="submitExchange()">ยืนยันการแลกเปลี่ยน</button>
+                <p id="fee-display">ค่าธรรมเนียม: 0.5%</p>
+            </div>
+        </section>
+
+        <section class="history-section">
+            <h2>ประวัติการทำธุรกรรม</h2>
+            <p style="text-align: center;">ดูประวัติการแลกเปลี่ยนและโอนเงินทั้งหมดของคุณ <a href="#" style="color: #37a34e;">ที่นี่</a></p>
+        </section>
+
+    </main>
+
+    <script>
+        // อัตราแลกเปลี่ยนจำลอง
+        const RATES = {
+            'THB_TO_KYAT': 50.00, // 1 THB ได้ 50 MMK
+            'KYAT_TO_THB': 1 / 55.00, // 1 MMK ได้ 1/55 THB
+            'FEE_PERCENT': 0.005 // 0.5%
+        };
+
+        function calculateExchange() {
+            const amountFrom = parseFloat(document.getElementById('amount-from').value);
+            const currencyFrom = document.getElementById('currency-from').value;
+            const amountToInput = document.getElementById('amount-to');
+            
+            if (isNaN(amountFrom) || amountFrom <= 0) {
+                amountToInput.value = '';
+                return;
+            }
+
+            let calculatedAmount = 0;
+
+            // ตรวจสอบทิศทางการแลกเปลี่ยน
+            if (currencyFrom === 'THB') {
+                calculatedAmount = amountFrom * RATES.THB_TO_KYAT;
+            } else if (currencyFrom === 'KYAT') {
+                calculatedAmount = amountFrom * RATES.KYAT_TO_THB;
+            }
+            
+            // หักค่าธรรมเนียมและแสดงผล
+            const finalAmount = calculatedAmount * (1 - RATES.FEE_PERCENT);
+
+            amountToInput.value = finalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function swapCurrencies() {
+            const fromSelect = document.getElementById('currency-from');
+            const toSelect = document.getElementById('currency-to');
+            
+            // สลับค่าใน input/select
+            const tempFromValue = fromSelect.value;
+            fromSelect.value = toSelect.options[0].value;
+            toSelect.options[0].value = tempFromValue;
+            
+            // สลับข้อความใน select
+            const tempFromText = fromSelect.options[fromSelect.selectedIndex].text;
+            fromSelect.options[fromSelect.selectedIndex].text = toSelect.options[0].text;
+            toSelect.options[0].text = tempFromText;
+            
+            // เพื่อให้การคำนวณยังคงใช้คู่สกุลเงินที่ถูกต้อง
+            toSelect.options[0].value = (fromSelect.value === 'THB') ? 'KYAT' : 'THB';
+
+            calculateExchange();
+        }
+
+        function submitExchange() {
+            const amount = document.getElementById('amount-from').value;
+            const from = document.getElementById('currency-from').value;
+            const to = document.getElementById('currency-to').options[0].value;
+            
+            if (confirm(`ยืนยันการทำรายการ: ต้องการแลกเปลี่ยน ${amount} ${from} เป็น ${to} ใช่หรือไม่?`)) {
+                // **ในระบบจริง: โค้ดส่วนนี้จะใช้ fetch() ส่งข้อมูลไปยัง API Backend**
+                alert("คำสั่งแลกเปลี่ยนถูกส่งไปยัง Backend แล้ว!");
+            }
+        }
+
+        // โหลดข้อมูลเริ่มต้นเมื่อหน้าเว็บโหลดเสร็จ
+        window.onload = function() {
+            // แสดงอัตราแลกเปลี่ยนจริงบนหน้าจอ
+            document.getElementById('sell-rate-ky').querySelector('.rate-kyat').textContent = (1 / RATES.KYAT_TO_THB).toFixed(2); // 1 MMK = X THB
+            document.getElementById('buy-rate-ky').querySelector('.rate-kyat').textContent = RATES.THB_TO_KYAT.toFixed(2); // 1 THB = X MMK
+            calculateExchange();
+        };
+    </script>
+</body>
+</html>
